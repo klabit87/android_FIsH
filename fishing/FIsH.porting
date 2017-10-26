@@ -30,12 +30,8 @@
 # RUNONCE means FIsH will be removed after run once!!
 RUNONCE=0
 
-# enabled DEBUG mode for FIsH:
-# - more log output
-# - FIsHFOOD will be executed in the background and generates debug output afterwards
-# - FIsH will commit suicide after the defined SUICIDETIME
+# will generate more DEBUG files in the FIsH log directory (unused atm)
 DEBUG=0
-SUICIDETIME=25m         # uses the "sleep" syntax
 
 # time in seconds for how long you want to wait for the magic key press
 # if you set this too long Android may been booted up completely and if u make it
@@ -86,11 +82,11 @@ VIBRATE="/sys/class/timed_output/vibrator/enable"
 #       find /sys -name green
 #       find /sys -name brightness
 # BOOT_LED: the default LED which shines on normal boot
-BOOT_LED="/sys/class/leds/blue/brightness"
+BOOT_LED="/sys/class/leds/led_b/brightness"
 # WAIT_LED: the LED which indicates that FIsH is NOW waiting for the magic key press of the user
-WAIT_LED="/sys/class/leds/green/brightness"
+WAIT_LED="$VIBRATE"
 # FISHB: the LED which indicates that the FIsHFOOD gets activated and the actual hack starts/ends
-FISH_LED="/sys/class/leds/red/brightness"
+FISH_LED="/sys/class/leds/led_r/brightness"
 
 # MAGIC key press to allow FIsH to boot it's food
 # - Porting instructions -
@@ -122,7 +118,7 @@ F_KEYPRESS(){
     #ECHOL "Power button check: $PWRACT"
     
     # dmesg example for vol_down pressed (and not released!)
-    KEYACT=$($DMESG | ${GREP} 'qpnp_pon_input_dispatch: code(114)' | $GREP 'value(2)'| tail -n1 | $GREP -c value)
+    # KEYACT=$($DMESG | ${GREP} '[sec_input] PMIC input: code=114' | $GREP 'sts=0x6'| tail -n1 | $GREP -c value)
 
     # the following getevent implementation means: if desired key pressed once - released or not!
     # -l labels the events to human readable
@@ -130,12 +126,12 @@ F_KEYPRESS(){
 
     # the key u wanna choose to boot into FIsH
     # Normally this will be one of: KEY_VOLUMEDOWN, KEY_VOLUMEUP, KEY_POWER
-    #FISHKEY="KEY_VOLUMEDOWN"
+    FISHKEY="KEY_VOLUMEDOWN"
 
     # you do NOT need to touch the following. The FISHKEY above should be enough.
     # TIMEOUT -t KEYWAIT is f*** important here!!! RTFM and use ur brain if u wonder y.
     #KEYACT=$(${TIMEOUT} -t $KEYWAIT getevent -l | $GREP $FISHKEY |tr -d ' '| $GREP -c "EV_KEY{$FISHKEY}DOWN")
-    #KEYACT=$(getevent -l | $GREP $FISHKEY |tr -d ' '| $GREP -c "EV_KEY{$FISHKEY}DOWN")
+    KEYACT=$(getevent -l | $GREP $FISHKEY |tr -d ' '| $GREP -c "EV_KEY{$FISHKEY}DOWN")
 
     # that means if the expected key was found we will have KEYACT=1 otherwise 0
     ECHOL "VolDown button check: $KEYACT"
@@ -148,27 +144,22 @@ F_KEYPRESS(){
 #       The ORDER is IMPORTANT!
 #       (means u have to umount all submounts first before u can unmount the main one)
 MOUNTS="/acct \
+       /mnt/secure/asec \
        /mnt/secure \
-       /mnt/asec \
-       /mnt/obb \
-       /mnt/pstore \
-       /mnt/sdcard \
-       /mnt/shell/emulated \
-       /mnt/shell \
-       /storage/external_SD \
-       /storage/sdcard0 \
-       /storage/emulated/legacy \
-       /storage/emulated/0 \
-       /storage/emulated \
-       /data/media \
-       /data \
        /persist \
        /firmware \
-       /sns \
-       /persist-lg \
-       /mpt \
-       /cust"
-
+       /storage \
+       /data \
+       /mnt/runtime/default/emulated \
+       /storage/emulated \
+       /mnt/runtime/read/emulated \
+       /mnt/runtime/write/emulated \
+       /efs \
+       /dsp \
+       /firmware-modem \
+       /persdata/absolute \
+       /config"
+ 
 # device specific mount points - OS special
 # - Porting instructions -
 #       system near mounts like /proc and /sys should be unmounted at the end first.
@@ -176,15 +167,14 @@ MOUNTS="/acct \
 #       use the command "mount" to find out yours and adjust this variable accordingly.
 #       The ORDER is IMPORTANT!
 #       (means u have to umount all submounts first before u can unmount the main one)
-SPECMOUNTS="/dev/usb-ffs/adb \
+SPECMOUNTS="/dev/pts \
+    /proc \
     /sys/fs/selinux \
     /sys/kernel/debug \
-    /sys/fs/cgroup \
     /sys/fs/pstore \
-    /dev/pts \
-    /dev/cpuctl \
-    /proc \
-    /sys"
+    /sys \
+    /dev/usb-ffs/adb \
+    /dev/cpuctl"
     
 
 # once FIsH starts to unmount filesystems it will first try to stop all unneeded services
