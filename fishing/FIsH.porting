@@ -35,7 +35,7 @@ RUNONCE=0
 # - FOODBIN will be executed in the background and generates debug output afterwards
 # - FIsH will commit suicide after the defined SUICIDETIME (default 25 minutes)
 # - optional: execute any command of your choice after FOODBIN has started by DEBUGEXTRACMD
-DEBUG=0
+DEBUG=1
 SUICIDETIME=         # Default is 25 minutes! Leave empty for default value. Uses the "sleep" syntax
 DEBUGEXTRACMD=       # any commmand u wanna exec before the debug goes into sleep (e.g: /sbin/recovery)
 
